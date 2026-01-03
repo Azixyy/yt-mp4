@@ -17,16 +17,18 @@ app.post("/download", (req, res) => {
   const id = Date.now();
   const file = `videos/${id}.mp4`;
 
-  exec(
-    `yt-dlp -f "bv*+ba/b" --merge-output-format mp4 -o "${file}" "${url}"`,
-    (err) => {
-      if (err) return res.status(500).json({ error: "Download failed" });
+  const cmd = `/usr/local/bin/yt-dlp -f "bv*+ba/b" --merge-output-format mp4 -o "${file}" "${url}"`;
 
-      res.json({
-        download: `${req.protocol}://${req.get("host")}/${file}`
-      });
+  exec(cmd, { shell: true }, (err, stdout, stderr) => {
+    if (err) {
+      console.error(stderr);
+      return res.status(500).json({ error: "Download failed" });
     }
-  );
+
+    res.json({
+      download: `${req.protocol}://${req.get("host")}/${file}`
+    });
+  });
 });
 
 app.listen(3000);
